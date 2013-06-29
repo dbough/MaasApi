@@ -35,11 +35,6 @@ class MaasApi {
      * @var string
      */
     var $archiveUrl = "http://marsweather.ingenology.com/v1/archive/";
-    /**
-     * URL with query parameters.
-     * @var string
-     */
-    var $archiveUrlSearch;
 
     /**
      * Object containing raw json object with latest weather info.
@@ -81,13 +76,12 @@ class MaasApi {
     }
 
     /**
-     * Get all archived data.
+     * Accepts results from an initial archive query and returns all results.
+     * @param  object $data
      * @return array
      */
-    public function getArchiveAll()
+    public function get($data)
     {
-        $jsonData = file_get_contents($this->archiveUrl);
-        $data = json_decode($jsonData);
         $results = $data->results;
 
         // Determine how many pages of data there are
@@ -111,6 +105,33 @@ class MaasApi {
         }
 
         return $results;
+    }
+
+    /**
+     * Get all archived data.
+     * @return array
+     */
+    public function getArchiveAll()
+    {
+        $jsonData = file_get_contents($this->archiveUrl);
+        $data = json_decode($jsonData);
+
+        return $this->get($data);
+    }
+
+    /**
+     * Get archived data between two dates.
+     * @param  string $startDate
+     * @param  string $endDate
+     * @return array
+     */
+    public function getArchiveRange($startDate, $endDate)
+    {
+        $urlSuffix = "?terrestrial_date_start=" . urldecode($startDate) . "&terrestrial_date_end=" . urlencode($endDate);
+        $jsonData = file_get_contents($this->archiveUrl . $urlSuffix);
+        $data = json_decode($jsonData);
+
+        return $this->get($data);
     }
 
     /**
