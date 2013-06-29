@@ -26,19 +26,10 @@
 
 class MaasApi {
     /**
-     * Used to hold alert information.  Currently the format is unknown.
-     * @var
-     */
-    var $alerts;
-    /**
      * URL to gather the latest info.
      * @var string
      */
     var $latestUrl = "http://marsweather.ingenology.com/v1/latest/";
-    /**
-     * JSON object containing the latest weather data.
-     */
-    var $report;
     /**
      * URL to gather archived info.
      * @var string
@@ -49,101 +40,6 @@ class MaasApi {
      * @var string
      */
     var $archiveUrlSearch;
-    /**
-     * Number of pages of data returned by a request.
-     * @var int
-     */
-    var $count;
-    /**
-     * URL pointing to the next page of data.
-     * @var string
-     */
-    var $next;
-    /**
-     * URL pointing to the previous page of data.
-     * @var string
-     */
-    var $previous;
-    /**
-     * Array containing archive data.
-     */
-    var $results = array();
-    /**
-     * Earth data 
-     * @var string
-     */
-    var $terrestrialDate;
-    /**
-     * Solar date
-     * @var int
-     */
-    var $sol;
-    /**
-     * Solar longitude
-     * @var int
-     */
-    var $ls;
-    /**
-     * Minimum temperature in Celsius
-     * @var int
-     */
-    var $minTemp;
-    /**
-     * Minimum temperature in Fahrenheit
-     * @var int
-     */
-    var $minTempFahrenheit;
-    /**
-     * Max temperature in Celsius
-     * @var int
-     */
-    var $maxTemp;
-    /**
-     * Max temperature in Fahrenheit
-     * @var int
-     */
-    var $maxTempFahrenheit;
-    /**
-     * Atmospheric Pressure
-     * @var int
-     */
-    var $pressure;
-    /**
-     * @var string
-     */
-    var $pressureString;
-    /**
-     * Absolute humidity
-     */
-    var $absHumidity;
-    /**
-     * Wind speed
-     */
-    var $windSpeed;
-    /**
-     * Wind direction
-     */
-    var $windDirection;
-    /**
-     * Atmospheric opacity
-     * @var string
-     */
-    var $atmoOpacity;
-    /**
-     * Season
-     * @var string
-     */
-    var $season;
-    /**
-     * Sunrise
-     * @var string
-     */
-    var $sunrise;
-    /**
-     * Sunset
-     * @var string
-     */
-    var $sunset;
 
     /**
      * Object containing raw json object with latest weather info.
@@ -163,7 +59,6 @@ class MaasApi {
         $jsonData = file_get_contents($this->latestUrl);
         $this->report = json_decode($jsonData)->report;
         return $this->report;
-
     }
 
     /**
@@ -195,7 +90,6 @@ class MaasApi {
         $data = json_decode($jsonData);
         $results = $data->results;
 
-
         // Determine how many pages of data there are
         $pages = ceil($data->count / 10);
 
@@ -208,8 +102,7 @@ class MaasApi {
         for ($i=2;$i<=$pages;$i++) {
             $jsonData = file_get_contents($this->archiveUrl . "?page=" . $i, false, $context);
             
-            // Need to determine if the jsonData is a valid object.
-            // Seems MAAS API returns bogus data sometimes.            
+            // If $jsonData is an object add it's data to our results array.         
             if ($this->isJson($jsonData)) {
                 foreach (json_decode($jsonData)->results as $result) {
                     array_push($results, $result);
