@@ -26,19 +26,19 @@
 
 class MaasApi {
     /**
-     * URL to gather the latest info.
+     * Latest data URL.
      * @var string
      */
     var $latestUrl = "http://marsweather.ingenology.com/v1/latest/";
     /**
-     * URL to gather archived info.
+     * Archive data URL.
      * @var string
      */
     var $archiveUrl = "http://marsweather.ingenology.com/v1/archive/";
 
     /**
-     * Object containing raw json object with latest weather info.
-     * @return json
+     * Raw JSON object with latest data.
+     * @return string
      */
     public function getLatestRaw()
     {
@@ -46,7 +46,17 @@ class MaasApi {
     }
 
     /**
-     * Gets latest weather results.
+     * Latest data as JSON
+     * @return string
+     */
+    public function getLatestJson()
+    {
+        return json_encode($this->getLatest());
+
+    }
+
+    /**
+     * Array of latest data.
      * @return array
      */
     public function getLatest()
@@ -57,18 +67,8 @@ class MaasApi {
     }
 
     /**
-     * Get latest weather data as a JSON object
-     * @return 
-     */
-    public function getLatestJson()
-    {
-        return json_encode($this->getLatest());
-
-    }
-
-    /**
-     * Object containing first page of archive weather data as a JSON object
-     * @return json
+     * Raw JSON object with first page of archived data.
+     * @return string
      */
     public function getArchiveRaw()
     {
@@ -76,7 +76,65 @@ class MaasApi {
     }
 
     /**
-     * Accepts results from an initial archive query and returns all results.
+     * JSON object of all archive data.
+     * @return array
+     */
+    public function getArchiveJson()
+    {
+       return json_encode($this->getArchiveAll());
+    }
+
+    /**
+     * Array of all archive data.
+     * @return array
+     */
+    public function getArchiveAll()
+    {
+        $jsonData = file_get_contents($this->archiveUrl);
+        $data = json_decode($jsonData);
+
+        return $this->get($data);
+    }
+
+    /**
+     * Get archive data based on search parameters.
+     * All properties of the object returned by the {MAAS} API can be searched for.
+     * You can also provide a date range with terrestrial_date_start and terrestrial_date_end.
+     * See more info at http://marsweather.ingenology.com/
+     * @param  array $params
+     * @return array
+     */
+    public function getArchiveSearch($params)
+    {
+        /*
+            Example $params:
+            $params = array(
+                "terrestrial_date_start"=>"2013-05-01",
+                "terrestrial_date_end"=>"2013-05-10"
+            );
+         */
+        $urlSuffix = "?";
+        $count = count($params);
+
+        foreach ($params as $key => $val) {
+            $urlSuffix .= $key . "=" . urlencode($val);
+
+            // Unless we're at the last param, add a & separator
+            if ($count != 1) {
+                $urlSuffix .="&";
+            }
+            $count--;
+        }
+
+        $jsonData = file_get_contents($this->archiveUrl . $urlSuffix);
+        $data = json_decode($jsonData);
+
+        return $this->get($data);
+
+    }
+
+    /**
+     * Uses first page results of archive query to gather all data from that query.
      * @param  object $data
      * @return array
      */
@@ -107,32 +165,6 @@ class MaasApi {
         return $results;
     }
 
-    /**
-     * Get all archived data.
-     * @return array
-     */
-    public function getArchiveAll()
-    {
-        $jsonData = file_get_contents($this->archiveUrl);
-        $data = json_decode($jsonData);
-
-        return $this->get($data);
-    }
-
-    /**
-     * Get archived data between two dates.
-     * @param  string $startDate
-     * @param  string $endDate
-     * @return array
-     */
-    public function getArchiveRange($startDate, $endDate)
-    {
-        $urlSuffix = "?terrestrial_date_start=" . urldecode($startDate) . "&terrestrial_date_end=" . urlencode($endDate);
-        $jsonData = file_get_contents($this->archiveUrl . $urlSuffix);
-        $data = json_decode($jsonData);
-
-        return $this->get($data);
-    }
 
     /**
      * Determines whether or not a string is a JSON object
