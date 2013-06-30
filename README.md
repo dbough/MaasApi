@@ -4,6 +4,8 @@ MaasApi is a PHP class used for interfacing with the {MAAS} API.
 More info on the {MAAS} API can be found at  
 http://marsweather.ingenology.com/ and https://github.com/ingenology/mars_weather_api  
 
+Visit http://www.danielbough.com/maas to see a real world example.
+
 Author
 ------
 Dan Bough  
@@ -12,10 +14,10 @@ http://www.danielbough.com
 
 License
 -------
-This software is covered under GPLv3.
+This software is free to use under the GPLv3 license.
 
 Example Use
------------  
+----------- 
 *Get latest data as an array:*  
 
     $maas = new MassApi;

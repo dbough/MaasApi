@@ -129,7 +129,7 @@ class MaasApi {
         $jsonData = file_get_contents($this->archiveUrl . $urlSuffix);
         $data = json_decode($jsonData);
 
-        return $this->get($data);
+        return $this->get($data, substr($urlSuffix, 1));
 
     }
 
@@ -138,12 +138,14 @@ class MaasApi {
      * @param  object $data
      * @return array
      */
-    public function get($data)
+    public function get($data, $urlSuffix=NULL)
     {
         $results = $data->results;
 
         // Determine how many pages of data there are
-        $pages = ceil($data->count / 10);
+        if ($data->count > 10) {
+            $pages = ceil($data->count / 10);
+        }
 
         // Context for ignoring HTTP / PHP errors with file_get_contents
         $context = stream_context_create(array(
@@ -152,8 +154,8 @@ class MaasApi {
 
         // Start at page 2 and go to the end
         for ($i=2;$i<=$pages;$i++) {
-            $jsonData = file_get_contents($this->archiveUrl . "?page=" . $i, false, $context);
-            
+            $jsonData = file_get_contents($this->archiveUrl . "?page=" . $i . "&" . $urlSuffix, false, $context);
+
             // If $jsonData is an object add it's data to our results array.         
             if ($this->isJson($jsonData)) {
                 foreach (json_decode($jsonData)->results as $result) {
@@ -165,14 +167,23 @@ class MaasApi {
         return $results;
     }
 
-
     /**
      * Determines whether or not a string is a JSON object
+     * Since this requires PHP 5.3, I'm assuming the JSON is OK
+     * for any version below that.  Probably a better way of doing this
+     * but I'll worry about that later.
      * @param  string  $string
      * @return boolean
      */
     private function isJson($string) {
-        json_decode($string);
-        return (json_last_error() == JSON_ERROR_NONE);
+        $version = substr(phpVersion(), 0, 3);
+
+        if ($version >= "5.3") {
+            json_decode($string);
+            return (json_last_error() == JSON_ERROR_NONE);
+        } 
+        else {
+            return true;
+        }
     }
 }
